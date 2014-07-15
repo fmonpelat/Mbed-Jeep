@@ -1,0 +1,13 @@
+data/GPS_VTG.h.i
+data/GPS.cpp.i
+data/GPS_Geodetic.h.i
+data/example1.cpp.i
+data/GPS_VTG.cpp.i
+data/GPS_Geodetic.cpp.i
+data/GPS.h.i
+data/GPS_Time.cpp.i
+data/example2.cpp.i
+data/ChangeLog.c.i
+data/GPS_Time.h.i
+data/info.h.i
+data/example3.cpp.i

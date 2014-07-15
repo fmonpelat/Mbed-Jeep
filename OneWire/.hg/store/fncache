@@ -1,0 +1,13 @@
+data/DebugTrace.cpp.i
+data/OneWireThermometer.h.i
+data/DS18S20.cpp.i
+data/main.cpp.i
+data/DS18S20.h.i
+data/DS18B20.h.i
+data/OneWireCRC.h.i
+data/OneWireThermometer.cpp.i
+data/DebugTrace.h.i
+data/OneWireCRC.cpp.i
+data/mbed.bld.i
+data/DS18B20.cpp.i
+data/OneWireDefs.h.i
