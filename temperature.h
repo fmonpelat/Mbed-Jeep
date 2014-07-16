@@ -12,8 +12,9 @@
 
 
 //Prototypes
-bool tempMode(DS18B20 *,TextLCD_I2C *,float);
 
+bool tempMode(DS18B20 *,TextLCD_I2C *,float);//deprecated
+bool getTemp(DS18B20 *,float ,float *);
 
 
 

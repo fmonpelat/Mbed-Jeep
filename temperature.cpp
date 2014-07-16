@@ -31,3 +31,18 @@ bool tempMode(DS18B20 *device,TextLCD_I2C *lcd,float max_temp){
             }
             return false;
 }
+
+
+bool getTemp(DS18B20 *device,float maxThreshold,float *temp){
+
+
+        while (!(*device).initialize());    // keep calling until it works
+        (*device).setResolution(twelveBit);
+
+            *temp=(*device).readTemperature();
+
+            if(*temp>maxThreshold){
+                return true;
+            }
+            return false;
+}

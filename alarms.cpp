@@ -16,7 +16,7 @@ void masterAlarm(TextLCD_I2C &lcd,int holdBack ,bool *flag){
 
 	if(*flag==false) lcd.cls();
     lcd.setAddress(4,1);
-    lcd.printf("MASTER ALARM..");
+    lcd.printf("MASTER ALARM");
     Buzz.beep(1000,0.5);
     *flag=true;
 
