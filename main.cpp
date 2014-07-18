@@ -17,7 +17,7 @@
 #include "alarms.h"
 #include "common.h"
 
-#define PCBAUD 115200
+#define PCBAUD 9600
 #define GPSRX p14
 #define GPSBAUD 9600
 #define THERMOMETER DS18B20
@@ -44,13 +44,19 @@ THERMOMETER WaterTemp(true, true, false, p25);
 
 // KEYPAD DEFS
 char Keytable[] = {
-    '1', '2', '3', 'A',   // r0
-    '4', '5', '6', 'B',   // r1
-    '7', '8', '9', 'C',   // r2
-    '*', '0', '#', 'D',   // r3
-  // c0   c1   c2   c3
+    'A', 'B', 'C', 'D',   // c0
+    '3', '6', '9', '#',   // c1
+    '2', '5', '8', '0',   // c2
+    '1', '4', '7', '*',   // c3
+  // r0   r1   r2   r3
  };
 uint32_t Index= -1;
+
+// keypad initialization
+//             r0   r1   r2   r3   c3   c2   c1   c0
+Keypad keypad( p6 , p7,  p8,  p9,  p5,  NC,  NC,  NC,200);
+
+
 
 //######## Prototypes ############
 void printIntro(void);
@@ -65,7 +71,7 @@ int main() {
     int i=3;
     bool gpsFixflag=true;
     bool firstExecflag=true;
-    bool buttonPress=true;
+
 
     // GPS VARIABLES
     GPS_Geodetic GpsData;
@@ -73,27 +79,32 @@ int main() {
     GPS_VTG GpsVector;
     double localHour;
     
-    // keypad initialization
-    //             r0   r1   r2   r3   c0   c1   c2   c3
-    Keypad keypad(p5, p6,  p7,  NC, NC, NC,  NC,  p8);
     keypad.attach(&commandAfterInput);
     keypad.start();
     
     init();
 
-/* TESTING KEYPAD
-    while(1)
-    {
-        if (Index > -1) {
-            PC.printf("Index:%d => Key:%c\r\n", Index, Keytable[Index]);
-            lcd.setAddress(0,0);
-            lcd.printf("Index:%d => Key:%c\r\n", Index, Keytable[Index]);
-            Index = -1;
-        }   
+/* keypad menu ...
+
+    switch(keytable[Index]){
+
+    case "A";
+    		keypadFlagA=true;
+    		break;
+    case "B":
+    		keypadFlagB=true;
+    		break;
+    case "C";
+    		keypadFlagC=true;
+    		break;
+    case "D":
+    		keypadFlagD=true;
+    		break;
+    default:
+    	break;
     }
 */
-    
-    
+
     lcd.cls();
     lcd.setAddress(0,0);
     while(true)
@@ -201,7 +212,10 @@ void ScreenLoadinggps(void){
 
 uint32_t commandAfterInput(uint32_t index)
 {
+
     Index=index;
+    //PC.printf("#############################\n");
+    //PC.printf("Index:%d => Key:%c\n", Index, Keytable[Index]);
     return 0;
 }
 
