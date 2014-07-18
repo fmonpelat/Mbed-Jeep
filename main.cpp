@@ -137,7 +137,7 @@ int main() {
             lcd.setAddress(0,2);
             error=tempMode(&WaterTemp,&lcd,30);
             lcd.setAddress(0,3);
-            lcd.printf("Sp:%.2fkn Cp:%.2f", GpsVector._velocity_knots ,GpsVector._track_mag);
+            lcd.printf("Sp:%.1fkn Cp:%.2f", GpsVector._velocity_kph ,GpsVector._track_mag);
         
             if ( error ){
             	masterAlarm(lcd,1 ,&masterflag);
