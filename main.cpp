@@ -16,12 +16,14 @@
 #include "temperature.h"
 #include "alarms.h"
 #include "common.h"
+#include "menu.h"
 
 #define PCBAUD 9600
 #define GPSRX p14
 #define GPSBAUD 9600
 #define THERMOMETER DS18B20
 #define JEEP_INTRO 5
+#define GPS_FIX 2
 
 DigitalOut myled(LED1);
 
@@ -54,7 +56,7 @@ uint32_t Index= -1;
 
 // keypad initialization
 //             r0   r1   r2   r3   c3   c2   c1   c0
-Keypad keypad( p6 , p7,  p8,  p9,  p5,  NC,  NC,  NC,200);
+Keypad keypad( p6 , p7,  p8,  p9,  p5,  NC,  NC,  NC,30);
 
 
 
@@ -69,11 +71,20 @@ int main() {
     bool error=false;
     bool masterflag=false;
     int i=3;
+    uint32_t row,col;
     bool gpsFixflag=true;
     bool firstExecflag=true;
-
+    bool keypadFlagA=false;
+    bool keypadFlagB=false;
+    bool keypadFlagC=false;
+    bool keypadFlagD=false;
+    bool firstPressedA=true;
+    bool firstPressedB=true;
+    bool firstPressedC=true;
+    bool firstPressedD=true;
 
     // GPS VARIABLES
+    uint32_t quality;
     GPS_Geodetic GpsData;
     GPS_Time GpsTime;
     GPS_VTG GpsVector;
@@ -82,63 +93,130 @@ int main() {
     keypad.attach(&commandAfterInput);
     keypad.start();
     
+    lcd.setUDC(0, (char *) udc_bar_6);
+    for(row=0;row<4;row++)
+    {
+    	for(col=0;col<20;col++)
+    	{
+    	lcd.putc(0);
+    	}
+
+    }
+    // init displays the logo.
     init();
 
-/* keypad menu ...
-
-    switch(keytable[Index]){
-
-    case "A";
-    		keypadFlagA=true;
-    		break;
-    case "B":
-    		keypadFlagB=true;
-    		break;
-    case "C";
-    		keypadFlagC=true;
-    		break;
-    case "D":
-    		keypadFlagD=true;
-    		break;
-    default:
-    	break;
-    }
-*/
-
+    // we erase screen just in case.
     lcd.cls();
-    lcd.setAddress(0,0);
+
     while(true)
     {
-        gps.geodetic(&GpsData);
-        gps.timeNow(&GpsTime);
-        gps.vtg(&GpsVector);
-        lcd.setAddress(0,0);
-        // test gps quality
-        if(!gps.getGPSquality())
-        {
-            i++;
-        }
-        else if(firstExecflag==false)
-        {
-            i=0;
-            if(gpsFixflag==false){
-                lcd.cls();
-                lcd.setAddress(0,0);
-            }
-            gpsFixflag=true;
-        }
-        if( i<3 )
-        {
-            lcd.setAddress(0,0);
-            localHour=GpsTime.hour-3;
-            lcd.printf("%02d:%02d:%02d %02d/%02d/%04d\n", GpsTime.hour, GpsTime.minute, GpsTime.second, GpsTime.day, GpsTime.month, GpsTime.year);
-            lcd.setAddress(0,1);
-            lcd.printf("Sat:%d",gps.numOfSats());
-            lcd.setAddress(0,2);
-            error=tempMode(&WaterTemp,&lcd,30);
-            lcd.setAddress(0,3);
-            lcd.printf("Sp:%.1fkn Cp:%.2f", GpsVector._velocity_kph ,GpsVector._track_mag);
-        
+
+    	switch(Index)
+    	{
+
+    		//-------------------    GPS DATA -------------------------------
+    		case 0:
+    				if(firstPressedA) lcd.cls();
+    				lcd.setAddress(0,0);
+
+					gps.geodetic(&GpsData);
+					gps.timeNow(&GpsTime);
+					gps.vtg(&GpsVector);
+					lcd.setAddress(0,0);
+					// test gps quality
+					if(!gps.getGPSquality())
+					{
+						i++;
+						PC.printf("fix failed: %d\n",i);
+					}
+					else
+					{
+						i=0;
+						if(gpsFixflag==false){
+							lcd.cls();
+							lcd.setAddress(0,0);
+							PC.printf("gpsFixflag is false / cls() / fix=OK\n");
+						}
+						gpsFixflag=true;
+					}
+					if( i<3 )
+					{
+						lcd.setAddress(0,0);
+						localHour=GpsTime.hour-3;
+						lcd.printf("%02d:%02d:%02d %02d/%02d/%04d\n", GpsTime.hour, GpsTime.minute, GpsTime.second, GpsTime.day, GpsTime.month, GpsTime.year);
+						lcd.setAddress(0,1);
+						lcd.printf("Sat:%d",gps.numOfSats());
+						lcd.setAddress(0,2);
+						lcd.printf("Sp:%.1fkn Cp:%.2f", GpsVector._velocity_kph ,GpsVector._track_mag);
+					}
+					else
+					{
+						PC.printf("GPS fix failed waiting for new fix\n");
+						if(firstExecflag==true || gpsFixflag==false) lcd.cls();
+						ScreenLoadinggps();
+						while( (quality=gps.getGPSquality()) ){
+							PC.printf("GPS fix 2sec wait loop / quality=%d\n",quality);
+							wait(GPS_FIX);
+						}
+						PC.printf("GPS fix 2sec wait\n");
+						gpsFixflag=false;
+						firstExecflag=false;
+					}
+					firstPressedA=false;
+					keypadFlagA=true;
+			    	keypadFlagB=false;
+			    	keypadFlagC=false;
+			    	keypadFlagD=false;
+					break;
+
+			//---------------------------   NAVEGATION --------------------------
+			case 1:
+					if(firstPressedB) lcd.cls();
+					lcd.setAddress(0,0);
+					lcd.printf("navegation menu");
+					keypadFlagA=false;
+					keypadFlagB=true;
+			    	keypadFlagC=false;
+			    	keypadFlagD=false;
+			    	firstPressedB=false;
+					break;
+
+			//--------------------------- TEMPERATURE STATS -----------------------
+			case 2:
+					if(firstPressedC) lcd.cls();
+					lcd.setAddress(0,0);
+					lcd.printf("temperature menu");
+					keypadFlagA=false;
+					keypadFlagB=false;
+			    	keypadFlagC=true;
+			    	keypadFlagD=false;
+			    	firstPressedC=false;
+					break;
+			//--------------------------- DRIVING ---------------------------------
+			case 3:
+					if(firstPressedD) lcd.cls();
+					lcd.setAddress(0,0);
+					lcd.printf("driving menu");
+					keypadFlagA=false;
+					keypadFlagB=false;
+			    	keypadFlagC=false;
+			    	keypadFlagD=true;
+			    	firstPressedD=false;
+					break;
+
+			default:
+				// main menu options
+				lcd.setAddress(0,1);
+				lcd.printf("Press to start ...");
+				break;
+			}
+    	keypadFlagA=false;
+    	keypadFlagB=false;
+    	keypadFlagC=false;
+    	keypadFlagD=false;
+    }
+
+/*
             if ( error ){
             	masterAlarm(lcd,1 ,&masterflag);
             	lcd.setAddress(2,0);
@@ -146,21 +224,8 @@ int main() {
                 // function that holds up the loop until user presses a button.
             	error=tempMode(&WaterTemp,&lcd,30);
             }
-        
-        
-        }
-        else
-        {
-            if(gpsFixflag==true){
-                lcd.cls();
-                lcd.setAddress(0,0);
-            }
-            ScreenLoadinggps();
-            gpsFixflag=false;
-            firstExecflag=false;
-        }
-        
-    }
+
+*/
 
 
 
